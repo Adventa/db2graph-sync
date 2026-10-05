@@ -1,0 +1,8 @@
+/target/
+/docs/book/
+**/node_modules/
+**/__pycache__/
+*.pyc
+/.d2g-state/
+*.redb
+*.tmp

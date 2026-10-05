@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose a new capability or an improvement.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check ROADMAP.md first; items listed there are planned but not
+        implemented. New source connectors or sinks should use the
+        "Adapter proposal" template instead. Consequential changes (delivery
+        semantics, state format, public API, security model) need an RFC; see
+        GOVERNANCE.md.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and why is it difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How the capability could work, including API or configuration sketches.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility, security and testing impact
+      description: |
+        Effect on existing configurations, durable state, the delivery contract or
+        security profiles, and how the change could be tested and evidenced.
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to contribute an implementation (under Apache-2.0).

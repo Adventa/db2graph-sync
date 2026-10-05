@@ -1,0 +1,47 @@
+[package]
+name = "db2graph-sync-cli"
+description = "Standalone binary and CLI for db2graph-sync. An open-source project by Adventa."
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories = ["command-line-utilities", "database"]
+
+[[bin]]
+name = "db2graph-sync"
+path = "src/main.rs"
+
+[features]
+default = ["postgres", "neo4j", "vector-qdrant", "vector-pinecone", "embedding-http"]
+postgres = ["db2graph-sync/postgres"]
+neo4j = ["db2graph-sync/neo4j"]
+vector-qdrant = ["db2graph-sync/vector-qdrant"]
+vector-pinecone = ["db2graph-sync/vector-pinecone"]
+embedding-http = ["db2graph-sync/embedding-http"]
+
+[dependencies]
+db2graph-sync = { path = "../db2graph-sync", version = "0.1.0", default-features = false, features = ["service"] }
+axum = { version = "0.8.4", default-features = false, features = ["json", "tokio", "http1"] }
+base64.workspace = true
+clap = { version = "4.5", features = ["derive", "env"] }
+getrandom = "0.3"
+hex.workspace = true
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1.16", features = ["tokio", "server", "http1", "service"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-manual-roots-no-provider"] }
+rustls = { version = "0.23.31", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-native-certs = "0.8"
+serde_json.workspace = true
+sha2 = "0.10"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal", "net", "time"] }
+tokio-rustls = { version = "0.26.2", default-features = false, features = ["ring", "tls12"] }
+tower = { version = "0.5", default-features = false }
+tracing.workspace = true
+tracing-subscriber = { version = "0.3.19", default-features = false, features = ["fmt", "env-filter", "json", "ansi"] }
+
+[dev-dependencies]
+tempfile = "3.20"

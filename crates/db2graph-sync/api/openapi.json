@@ -1,0 +1,85 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "db2graph-sync management API",
+    "version": "v1",
+    "description": "Management and observation API for a running db2graph-sync engine. db2graph-sync is an open-source project by Adventa (https://www.adventa.com.au). The API never executes arbitrary database queries.",
+    "license": { "name": "Apache-2.0", "identifier": "Apache-2.0" }
+  },
+  "servers": [{ "url": "/" }],
+  "components": {
+    "securitySchemes": {
+      "bearer": { "type": "http", "scheme": "bearer", "description": "Tokens are configured by SHA-256 digest with scopes read, operate, recover." }
+    },
+    "parameters": {
+      "CorrelationId": { "name": "x-correlation-id", "in": "header", "required": false, "schema": { "type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9_-]+$" }, "description": "Echoed on the response; generated when absent or invalid." },
+      "IdempotencyKey": { "name": "idempotency-key", "in": "header", "required": false, "schema": { "type": "string" }, "description": "Echoed. Operations are idempotent by design." }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["code", "message", "correlation_id"],
+        "properties": {
+          "code": { "type": "string", "enum": ["config", "preflight", "feature_not_compiled", "restricted_provider_unavailable", "security", "secret", "state_tampered", "state_rollback", "state_io", "ownership_conflict", "fenced_out", "source", "source_identity_changed", "resume_history_lost", "schema_incompatible", "mapping_not_approved", "graph", "consistency_incident", "vector", "audit_unavailable", "limit_exceeded", "timeout", "shutdown", "invalid_request", "unauthorized", "unsupported", "internal"] },
+          "message": { "type": "string" },
+          "correlation_id": { "type": "string" }
+        }
+      },
+      "Ack": { "type": "object", "required": ["ok", "phase"], "properties": { "ok": { "type": "boolean" }, "phase": { "$ref": "#/components/schemas/Phase" } } },
+      "Phase": { "type": "string", "enum": ["starting", "preflight", "recovering", "snapshotting", "validating", "streaming", "paused", "draining", "stopped", "failed"] },
+      "Status": { "type": "object", "description": "See db2graph_sync::handle::Status in the Rust API documentation.", "required": ["pipeline", "profile", "phase", "ready", "delivery_guarantee", "counters", "backlog", "freshness"], "additionalProperties": true },
+      "Principal": {
+        "type": "object", "required": ["tenant"],
+        "properties": {
+          "tenant": { "type": "string" },
+          "classifications": { "type": "array", "items": { "type": "string" } },
+          "cui_categories": { "type": "array", "items": { "type": "string" } },
+          "export_authorizations": { "type": "array", "items": { "type": "string" } },
+          "releasability_code": { "type": ["string", "null"] }
+        }
+      },
+      "Hit": { "type": "object", "required": ["entity_id", "version"], "properties": { "entity_id": { "type": "string" }, "version": { "type": "string" } } }
+    },
+    "responses": {
+      "Unauthorized": { "description": "Missing or invalid token", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Forbidden": { "description": "Token lacks the required scope", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "BadRequest": { "description": "Invalid request; synchronization is unaffected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    }
+  },
+  "paths": {
+    "/v1/about": {
+      "get": { "operationId": "about", "summary": "Attribution, version and compiled features", "security": [], "responses": { "200": { "description": "About", "content": { "application/json": { "schema": { "type": "object" } } } } } }
+    },
+    "/v1/health/live": {
+      "get": { "operationId": "live", "summary": "Process liveness", "security": [], "responses": { "200": { "description": "Alive" } } }
+    },
+    "/v1/health/ready": {
+      "get": { "operationId": "ready", "summary": "Live replication established", "security": [], "responses": { "200": { "description": "Ready" }, "503": { "description": "Not ready; body is the phase" } } }
+    },
+    "/v1/status": {
+      "get": { "operationId": "status", "summary": "Status, freshness, backlog and counters", "security": [{ "bearer": ["read"] }], "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }],
+        "responses": { "200": { "description": "Status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Status" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "403": { "$ref": "#/components/responses/Forbidden" } } }
+    },
+    "/v1/metrics": {
+      "get": { "operationId": "metrics", "summary": "Prometheus text exposition", "security": [{ "bearer": ["read"] }], "responses": { "200": { "description": "Metrics (counter type for *_total series, gauge otherwise)", "content": { "text/plain": {} } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "403": { "$ref": "#/components/responses/Forbidden" } } }
+    },
+    "/v1/pause": {
+      "post": { "operationId": "pause", "summary": "Pause capture and application (idempotent)", "security": [{ "bearer": ["operate"] }], "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": { "200": { "description": "Paused", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Ack" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "403": { "$ref": "#/components/responses/Forbidden" } } }
+    },
+    "/v1/resume": {
+      "post": { "operationId": "resume", "summary": "Resume (idempotent)", "security": [{ "bearer": ["operate"] }], "parameters": [{ "$ref": "#/components/parameters/CorrelationId" }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": { "200": { "description": "Resumed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Ack" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "403": { "$ref": "#/components/responses/Forbidden" } } }
+    },
+    "/v1/mapping/approve": {
+      "post": { "operationId": "approveMapping", "summary": "Approve a computed mapping plan digest and resume (idempotent). Request body limit 64 KiB.", "security": [{ "bearer": ["operate"] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["digest"], "properties": { "digest": { "type": "string", "pattern": "^[0-9a-fA-F]{32}$" } } } } } },
+        "responses": { "200": { "description": "Approved", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Ack" } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "403": { "$ref": "#/components/responses/Forbidden" } } }
+    },
+    "/v1/retrieval/validate": {
+      "post": { "operationId": "validateRetrieval", "summary": "Validate vector hits against current graph state and policy (authorized retrieval boundary). Request body limit 1 MiB.", "security": [{ "bearer": ["read"] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["principal", "hits"], "properties": { "principal": { "$ref": "#/components/schemas/Principal" }, "hits": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/components/schemas/Hit" } }, "version_rule": { "type": "string", "enum": ["exact_version", "any_version"] } } } } } },
+        "responses": { "200": { "description": "Verdict per hit", "content": { "application/json": { "schema": { "type": "object", "properties": { "verdicts": { "type": "array", "items": { "type": "object" } } } } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "403": { "$ref": "#/components/responses/Forbidden" }, "503": { "description": "Graph lookup failed; retry", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } } } }
+    }
+  }
+}

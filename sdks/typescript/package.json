@@ -1,0 +1,15 @@
+{
+  "name": "db2graph-sync-client",
+  "version": "0.1.0",
+  "description": "Service SDK (HTTP client) for the db2graph-sync management API. Does not embed the engine. An open-source project by Adventa (https://www.adventa.com.au).",
+  "license": "Apache-2.0",
+  "author": "Adventa (https://www.adventa.com.au)",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "exports": { ".": { "types": "./src/index.d.ts", "default": "./src/index.js" } },
+  "files": ["src", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": { "test": "node --test" }
+}

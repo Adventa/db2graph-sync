@@ -1,0 +1,31 @@
+# Integration-test services. Synthetic data only; credentials are test-only
+# and must never be reused elsewhere.
+name: db2graph-sync-it
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: d2g
+      POSTGRES_PASSWORD: d2g-test-only
+      POSTGRES_DB: d2g
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=20", "-c", "max_wal_senders=20"]
+    ports: ["55432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U d2g -d d2g"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/d2g-test-only
+      NEO4J_server_memory_heap_max__size: 1G
+    ports: ["57687:7687"]
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p d2g-test-only 'RETURN 1' || exit 1"]
+      interval: 3s
+      timeout: 10s
+      retries: 60
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    ports: ["56333:6333"]

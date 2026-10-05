@@ -1,0 +1,50 @@
+# Development configuration: PostgreSQL -> Neo4j on a local machine.
+# Plaintext is an explicit development exception (engine.allow_plaintext).
+# Secrets are references; nothing secret is stored in this file.
+# db2graph-sync — an open-source project by Adventa. https://www.adventa.com.au
+
+[pipeline]
+id = "orders-graph"
+tenant = "demo"
+profile = "development"
+
+[engine]
+allow_plaintext = true
+
+[source]
+type = "postgres"
+host = "127.0.0.1"
+port = 55432
+database = "d2g"
+user = "d2g"
+password = "env:D2G_PG_PASSWORD"
+publication = "d2g_demo"
+slot = "d2g_demo"
+tls = { mode = "disable" }
+
+[graph]
+type = "neo4j"
+uri = "bolt://127.0.0.1:57687"
+user = "neo4j"
+password = "env:D2G_NEO4J_PASSWORD"
+
+[state]
+dir = "./.d2g-state"
+active_key = 1
+# Generate with `db2graph-sync keygen` and store it in your secret manager.
+keys = [{ id = 1, key = "env:D2G_STATE_KEY" }]
+
+[policy]
+[[policy.datasets]]
+relation = "public.customers"
+deny_fields = ["ssn"]
+embed_fields = ["name", "notes"]
+[[policy.datasets]]
+relation = "public.orders"
+
+[[mapping.relations]]
+relation = "public.orders"
+labels = ["Order"]
+[[mapping.relations.edges]]
+constraint = "orders_customer_id_fkey"
+type = "PLACED_BY"

@@ -1,0 +1,84 @@
+name: Adapter proposal
+description: Propose a new source connector, graph sink, vector sink or embedding provider.
+labels: ["adapter-proposal", "needs-rfc", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adapters follow the adapter proposal process in GOVERNANCE.md: capability
+        descriptor, qualification plan, conformance suite and live-service tests.
+        An adapter is only described as qualified after its live-service tests have
+        run successfully and the evidence is recorded in IMPLEMENTATION_STATUS.md.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Adapter kind
+      options:
+        - Source connector
+        - Graph sink
+        - Vector sink
+        - Embedding provider
+        - State backend
+        - Secret provider
+        - Crypto provider
+        - Audit sink
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target system and versions
+      description: Product, supported server versions and deployment variants (self-hosted, managed, cluster).
+    validations:
+      required: true
+  - type: textarea
+    id: capabilities
+    attributes:
+      label: Capability descriptor
+      description: |
+        Capabilities the adapter will declare and how each is achieved. Graph sinks:
+        atomic batches, receipts stored in the target, guarded versions, fencing,
+        tombstones. Sources: transaction boundaries, ordering scope, resumable
+        positions, snapshot consistency, schema change signals. Vector sinks:
+        visibility verification, deletes by entity/version. Declare missing
+        capabilities explicitly; the delivery guarantee is derived from them.
+    validations:
+      required: true
+  - type: textarea
+    id: guarantee
+    attributes:
+      label: Resulting delivery guarantee and known limitations
+    validations:
+      required: true
+  - type: textarea
+    id: qualification
+    attributes:
+      label: Qualification plan
+      description: Server versions, deployment variants and failure modes to be tested, and the evidence to be produced.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Conformance and live-service tests
+      description: |
+        How the adapter will run the conformance suite (for graph sinks
+        `sink::conformance::run_all`) and live-service tests that print
+        `UNEXECUTED` (and therefore fail the integration scripts) when services
+        are unavailable.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security considerations
+      description: Authentication, TLS verification, secret handling, and behaviour under each security profile.
+    validations:
+      required: true
+  - type: textarea
+    id: licensing
+    attributes:
+      label: Dependencies and licensing
+      description: New dependencies and their licenses (must satisfy deny.toml), and any third-party service terms.
+    validations:
+      required: true

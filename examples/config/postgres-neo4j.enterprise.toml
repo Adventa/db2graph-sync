@@ -1,0 +1,61 @@
+# Enterprise production profile: verified TLS everywhere, approved mapping,
+# dataset allowlist, authenticated management API over TLS, audit file.
+# Replace hosts, paths and the approved digest (`db2graph-sync plan`).
+# db2graph-sync — an open-source project by Adventa. https://www.adventa.com.au
+
+[pipeline]
+id = "orders-graph"
+tenant = "acme"
+profile = "enterprise"
+
+[source]
+type = "postgres"
+host = "pg.internal.example"
+port = 5432
+database = "orders"
+user = "d2g_replicator"
+password = "file:/run/secrets/d2g_pg_password"
+publication = "d2g_orders"
+slot = "d2g_orders"
+tls = { mode = "verify-full", ca_file = "/etc/d2g/pg-ca.pem" }
+
+[graph]
+type = "neo4j"
+uri = "bolt+s://graph.internal.example:7687"
+user = "d2g_writer"
+password = "file:/run/secrets/d2g_neo4j_password"
+ca_file = "/etc/d2g/neo4j-ca.pem"
+
+[state]
+dir = "/var/lib/db2graph-sync/state"
+anchor_file = "/var/lib/db2graph-sync-anchor/anchor"
+active_key = 1
+keys = [{ id = 1, key = "file:/run/secrets/d2g_state_key_v1" }]
+
+[audit]
+file = "/var/log/db2graph-sync/audit.jsonl"
+
+[management]
+listen = "0.0.0.0:8443"
+tls_cert = "/etc/d2g/mgmt.crt"
+tls_key = "/etc/d2g/mgmt.key"
+# sha256 of each bearer token (`db2graph-sync token-hash`); the token itself
+# lives only in the operator's secret store.
+tokens = [
+  { name = "ops-readonly", sha256 = "0000000000000000000000000000000000000000000000000000000000000000", scopes = ["read"] },
+]
+
+[mapping]
+approved_digest = "00000000000000000000000000000000"
+
+[policy]
+unknown_fields = "deny"
+[[policy.datasets]]
+relation = "public.customers"
+allow_fields = ["id", "name", "email", "segment"]
+embed_fields = ["name", "segment"]
+[policy.datasets.labels]
+releasability = ["AUS"]
+[[policy.datasets]]
+relation = "public.orders"
+allow_fields = ["id", "customer_id", "total", "placed_at"]

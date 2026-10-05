@@ -1,0 +1,87 @@
+name: Bug report
+description: Behaviour that contradicts the documentation or the delivery contract.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not report security vulnerabilities here.** See SECURITY.md. A private
+        reporting channel is not configured yet and will be published before the
+        first release.
+
+        Use synthetic data only. Redact secrets, credentials, internal host names
+        and any data you are not permitted to share from everything you paste.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps and configuration (redacted) using synthetic data.
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: |
+        Output of `db2graph-sync about` (or the crate version and enabled cargo features
+        if you embed the library), `rustc -V`, operating system and architecture, and
+        the versions of PostgreSQL, Neo4j and any vector store or embedding service.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Deployment mode
+      options:
+        - Embedded library
+        - Standalone binary (CLI)
+        - Container image
+    validations:
+      required: true
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Security profile
+      options:
+        - development
+        - enterprise
+        - restricted
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error kind, message and exit code
+      description: For example `ownership_conflict`, exit code 6.
+      render: text
+  - type: textarea
+    id: status
+    attributes:
+      label: Status JSON
+      description: Output of `db2graph-sync status` or a serialized `SyncHandle::status()` (redacted).
+      render: json
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence export and logs
+      description: |
+        Relevant parts of `db2graph-sync evidence --config <file> --out evidence.json`
+        and logs (`run --log-format json`). Review and redact before attaching.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked IMPLEMENTATION_STATUS.md and LIMITATIONS.md.
+          required: true
+        - label: I have removed secrets, credentials and non-synthetic data from this report.
+          required: true

@@ -1,0 +1,6 @@
+# Security reports: see SECURITY.md. A private vulnerability reporting
+# channel is not configured yet (TBD — publication blocker, see
+# IMPLEMENTATION_STATUS.md); do not open public issues for vulnerabilities.
+# `contact_links` requires a URL, so no contact link is configured until the
+# private channel exists.
+blank_issues_enabled: false

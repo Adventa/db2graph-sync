@@ -1,0 +1,12 @@
+[book]
+title = "db2graph-sync"
+authors = ["Adventa"]
+language = "en"
+src = "src"
+
+[output.html]
+# git-repository-url is intentionally omitted: the repository location is
+# TBD — publication blocker (see IMPLEMENTATION_STATUS.md).
+
+[output.html.search]
+enable = true
